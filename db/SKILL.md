@@ -8,61 +8,42 @@ description: >
   documento, atualizar este documento primeiro, depois continuar.
 ---
 
-# DB — Schema de Dados
+ROLE: db
+PRINCIPLE: Fonte única de verdade do schema. Discrepância código vs doc → atualizar doc primeiro.
 
-> Se houver discrepância entre código e este documento:
-> **atualize este documento para refletir o código antes de continuar.**
+CONTEXT:
+  ORM: SQLModel (SQLAlchemy + Pydantic)
+  DB:  SQLite (dev)
+  CFG: easy_lease/config.py → Settings.database_url
+  FILE: database.db (raiz · gitignored)
 
-## Contexto
+CONVENTIONS:
+  PK:       UUID7 via default_factory (exceto JOB_QUEUE.id → INTEGER autoincrement)
+  soft-del: deleted_at (DATETIME · nullable)
+  money:    centavos inteiros (INTEGER)
+  cross-ctx: sem FK explícita · gerenciado pela aplicação
+  upsert:   INSERT ... ON CONFLICT DO UPDATE → preserva created_at
 
-- ORM: SQLModel (SQLAlchemy + Pydantic)
-- Banco: SQLite (desenvolvimento)
-- Config: `easy_lease/config.py` → `Settings.database_url`
-- Arquivo: `database.db` (raiz do projeto, ignorado pelo git)
+TABLES:
+  ACCOUNT              account     conta/tenant
+  OWNER_ACCOUNT        account     papel Owner (1:1 ACCOUNT)
+  RENTER_ACCOUNT       account     papel Renter (1:1 ACCOUNT)
+  RENTABLE_ITEM        inventory   item físico para aluguel
+  RENTABLE_ITEM_TAG    inventory   tags do item (N:1)
+  RENTABLE_ITEM_SHADOW marketplace projeção desnormalizada do item
+  ANNOUNCED_ITEM       marketplace anúncio na vitrine
+  ANNOUNCED_ITEM_ORIGIN marketplace origem geográfica (1:1 ANNOUNCED_ITEM)
+  ACCOUNT_SHADOW       orders      projeção de OwnerAccount
+  ORDERS               orders      ordem de aluguel
+  ORDER_ITEMS          orders      item dentro de Order (N:1)
+  ORDER_DESTINATIONS   orders      destino de entrega (1:1 ORDER)
+  JOB_QUEUE            shared      fila de jobs assíncrona
 
----
+REF: detalhes completos de campos · constraints · relacionamentos → DB.md (raiz)
 
-## Convenções globais
+GOVERNANCE:
+  alteração de schema: atualizar DB.md · registrar no log da TASK
+  DENY: DOD sem DB.md atualizado
 
-- PKs: UUID7 gerado via `default_factory` (exceto `JOB_QUEUE.id` → INTEGER autoincrement)
-- Soft delete: campo `deleted_at` (DATETIME, nullable)
-- Valores monetários: centavos inteiros (INTEGER)
-- Referencias cross-context: sem FK explícita no banco, gerenciadas pela aplicação
-- Upsert: `INSERT ... ON CONFLICT DO UPDATE` — preserva `created_at`
-
----
-
-## Tabelas
-
-Para detalhes completos de cada tabela, leia o arquivo `DB.md` original na raiz do projeto.
-
-### Resumo
-
-| Tabela | Contexto | Descrição |
-|---|---|---|
-| `ACCOUNT` | account | Conta/tenant do sistema |
-| `OWNER_ACCOUNT` | account | Vínculo de papel Owner (1:1 com ACCOUNT) |
-| `RENTER_ACCOUNT` | account | Vínculo de papel Renter (1:1 com ACCOUNT) |
-| `RENTABLE_ITEM` | inventory | Item físico disponível para aluguel |
-| `RENTABLE_ITEM_TAG` | inventory | Tags de um RentableItem (N:1) |
-| `RENTABLE_ITEM_SHADOW` | marketplace | Projeção desnormalizada do RentableItem |
-| `ANNOUNCED_ITEM` | marketplace | Anúncio na vitrine do Marketplace |
-| `ANNOUNCED_ITEM_ORIGIN` | marketplace | Origem geográfica de um AnnouncedItem (1:1) |
-| `ACCOUNT_SHADOW` | orders | Projeção de OwnerAccount no contexto orders |
-| `ORDERS` | orders | Ordem de aluguel criada no checkout |
-| `ORDER_ITEMS` | orders | Item individual dentro de uma Order (N:1) |
-| `ORDER_DESTINATIONS` | orders | Destino de entrega de uma Order (1:1) |
-| `JOB_QUEUE` | shared | Fila de jobs para processamento assíncrono |
-
----
-
-## Governança
-
-Qualquer alteração de schema exige:
-1. Atualizar `DB.md` (fonte da verdade)
-2. Registrar no log da TASK
-3. 🚫 DOD não pode ser satisfeito sem isso
-
-## Log de alterações
-
-> append-only — registrar aqui toda alteração de schema com data e TASK de referência
+CHANGELOG:
+  > append-only
