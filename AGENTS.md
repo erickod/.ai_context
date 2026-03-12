@@ -33,7 +33,7 @@ Ao assumir ROLE: ler skill integralmente → tratar como contrato vinculante.
 | Eng | `.ai_context/senhor-eng/` |
 | Code Reviewer | `.ai_context/code-reviewer/` |
 
-REF: `DB.md` · `GUIDELINES.md` → fontes transversais autoritativas
+REF: `.ai_context/DB.md` · `.ai_context/GUIDELINES.md` → fontes transversais autoritativas
 DENY: atuar sem ler skill · ignorar regras · misturar roles
 
 ## HARD GATES
