@@ -1,54 +1,27 @@
-# Definition of Ready (DOR)
-
-Uma task só pode ser iniciada pela IA quando **todos** os critérios
-deste documento forem atendidos.
-
-Caso qualquer item não seja satisfeito, a IA DEVE interromper
-a execução e solicitar esclarecimentos explícitos.
-
 ---
-
-## Critérios obrigatórios
-
-### 1. Objetivo claro
-- A task possui um objetivo único e bem definido
-- Não há múltiplas intenções misturadas
-
-### 2. Escopo definido
-- O que está dentro do escopo está explicitado
-- O que está fora do escopo está explicitado
-
-### 3. Critérios de aceitação
-- Existem critérios verificáveis
-- Não são subjetivos (“funcionar bem”, “rápido”, etc.)
-
-### 4. Contexto técnico suficiente
-- Linguagem, stack ou módulo afetado estão claros
-- Dependências relevantes são conhecidas
-
-### 5. Restrições explícitas
-- Limitações técnicas ou de negócio foram declaradas
-- Regras de segurança, performance ou compliance foram informadas
-
+name: dor
+description: >
+  Definition of Ready — critérios obrigatórios que uma TASK deve atender antes de qualquer
+  execução pela IA. Use esta skill para verificar se uma TASK está pronta para iniciar, ao
+  receber uma nova TASK, ou quando houver dúvida sobre completude. Se qualquer critério não
+  for atendido, interromper e solicitar esclarecimentos.
 ---
+ROLE: dor
+PRINCIPLE: Task não qualificada → interromper e solicitar esclarecimentos. Sem exceções.
 
-## Comportamento obrigatório da IA
+CRITERIA:
+  objetivo:   único e bem definido · sem múltiplas intenções misturadas
+  escopo:     dentro explicitado · fora explicitado
+  aceitação:  critérios verificáveis · DENY: subjetivos ("funcionar bem" · "rápido")
+  contexto:   linguagem/stack/módulo claros · dependências conhecidas
+  restrições: limitações técnicas/negócio declaradas · segurança/performance/compliance informados
 
-Antes de iniciar qualquer execução, a IA DEVE:
+PRE-EXEC:
+  1. repetir entendimento da TASK de forma resumida
+  2. listar suposições explícitas
+  3. apontar ambiguidades ou lacunas
+  4. aguardar validação humana explícita → só então prosseguir
 
-1. Repetir o entendimento da task de forma resumida
-2. Listar suposições explícitas
-3. Apontar ambiguidades ou lacunas
-4. Aguardar validação humana explícita
-
-Nenhuma etapa de design, teste ou código pode ser iniciada
-antes dessa validação.
-
----
-
-## Violação do DOR
-
-Se o DOR não for atendido:
-- A IA NÃO DEVE propor design
-- A IA NÃO DEVE escrever testes
-- A IA NÃO DEVE escrever código
+DENY:
+  sem PRE-EXEC completo: propor design · escrever testes · escrever código
+  sem todos CRITERIA: iniciar qualquer etapa de execução
