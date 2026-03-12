@@ -1,107 +1,28 @@
-# Definition of Done (DOD)
-
-Uma TASK só pode ser considerada **concluída** quando **todos**
-os critérios definidos neste documento forem atendidos.
-
-O DOD define **o que significa “pronto”**.
-O controle de execução, loop e validação técnica é orquestrado
-pelo `AGENTS.md`.
-
 ---
-
-## Princípio fundamental
-
-> “Done” significa **entregável correto, validado e verificável**.  
-> Não existem conclusões parciais, implícitas ou subjetivas.
-
+name: dod
+description: >
+  Definition of Done — critérios obrigatórios que uma TASK deve atender para ser considerada
+  concluída. Use esta skill para verificar se uma TASK está pronta para ser declarada done,
+  ao finalizar implementação, ou quando houver dúvida sobre completude. Controle de execução
+  e loop de validação técnica são orquestrados pelo AGENTS.md.
 ---
+ROLE: dod
+PRINCIPLE: "Done" = entregável correto, validado e verificável. Sem conclusões parciais, implícitas ou subjetivas.
 
-## Critérios obrigatórios de conclusão
+CRITERIA:
+  objetivo:     completamente atendido · sem parciais/pendentes · coerente com escopo aprovado
+  aceitação:    todos satisfeitos · cada um com evidência verificável · DENY: ignorar ou reinterpretar
+  design:       proposto antes da implementação · validado explicitamente · alterações registradas no log
+  testes.unit:  escritos conforme TASK · cobrem sucesso e falha · determinísticos · todos passando
+  testes.integ: escritos conforme TASK · validam interação entre componentes · não violam DB.md/WORKFLOWS.md · todos passando
+  impl:         segue GUIDELINES.md · não viola ROLES · não sai do escopo · sem efeitos colaterais não documentados
+  regressões:   nenhuma introduzida · impactos indiretos avaliados · riscos registrados no log
+  log:          atualizado · decisões técnicas registradas · bloqueios/mudanças/validações constam · append-only
 
-### 1. Objetivo atendido
-- O objetivo descrito na TASK foi completamente atendido
-- Não existem funcionalidades parciais, implícitas ou pendentes
-- O resultado é coerente com o escopo aprovado
+DECLARATION:
+  done SE: todos CRITERIA atendidos · Test Gate (AGENTS.md) satisfeito · estado atualizado para `done`
+  DENY: conclusão parcial · done com testes falhando · done por interpretação subjetiva
 
----
-
-### 2. Critérios de aceitação satisfeitos
-- Todos os critérios de aceitação definidos na TASK estão marcados como satisfeitos
-- Cada critério possui evidência verificável
-- Nenhum critério foi ignorado ou “reinterpretado”
-
----
-
-### 3. Design validado
-- A proposta de design foi apresentada antes da implementação
-- O design foi validado explicitamente
-- Alterações de design durante a execução foram registradas no log da TASK
-
----
-
-### 4. Testes unitários
-- Testes unitários foram escritos conforme a estratégia definida na TASK
-- Cobrem cenários de sucesso e falha
-- São determinísticos e reproduzíveis
-- **Todos os testes unitários passam**
-
-> A execução e validação dos testes é um gate técnico obrigatório,
-> controlado pelo `AGENTS.md`.
-
----
-
-### 5. Testes de integração
-- Testes de integração foram escritos conforme a estratégia definida na TASK
-- Validam interação entre componentes, serviços ou módulos
-- Não burlam regras definidas em `DB.md` ou `WORKFLOWS.md`
-- **Todos os testes de integração passam**
-
-> A execução e validação dos testes é um gate técnico obrigatório,
-> controlado pelo `AGENTS.md`.
-
----
-
-### 6. Implementação aderente
-- O código segue integralmente o `GUIDELINES.md`
-- Não viola responsabilidades definidas pelas ROLES
-- Não executa ações fora do escopo da TASK
-- Não introduz efeitos colaterais não documentados
-
----
-
-### 7. Ausência de regressões conhecidas
-- Nenhuma regressão funcional conhecida foi introduzida
-- Impactos indiretos foram avaliados
-- Riscos identificados foram registrados no log da TASK
-
----
-
-### 8. Log completo e consistente
-- O log de decisões e alterações da TASK está atualizado
-- Decisões técnicas relevantes foram registradas
-- Bloqueios, mudanças de entendimento e validações humanas constam no log
-- O log é **append-only** e não foi alterado retroativamente
-
----
-
-## Declaração de conclusão
-
-Uma TASK **só pode ser declarada como `done`** quando:
-
-- Todos os critérios acima forem atendidos
-- O Test Gate definido no `AGENTS.md` for satisfeito
-- O estado da TASK for atualizado para `done`
-
-A IA **NÃO DEVE**:
-- Declarar conclusão parcial
-- Declarar “done” com testes falhando
-- Declarar “done” por interpretação subjetiva
-
----
-
-## Violação do DOD
-
-Se qualquer critério não for atendido:
-- A TASK permanece em execução **ou**
-- É explicitamente marcada como `blocked`
-- A IA DEVE indicar claramente o que falta para atingir o DOD
+VIOLATION:
+  task permanece: em execução · ou marcada como `blocked`
+  obrigatório: indicar explicitamente o que falta para atingir o DOD
