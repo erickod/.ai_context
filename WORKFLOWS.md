@@ -19,3 +19,7 @@ RUN:
 > Run Linters and Format
 RUN:
   bash -c "source .venv/bin/activate && make format"
+
+> Generate Migration with model changes
+RUN:
+  bash -c "source .venv/bin/activate && make db_generate_revision"
