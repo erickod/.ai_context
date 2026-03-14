@@ -46,10 +46,8 @@ ATOMIC:
   EXCEPTIONS (sem aprovação): execução de testes · validações automáticas
 
 COMMITS:
-  + commitar imediatamente após aprovação
-  + Conventional Commits: feat: | fix: | style: | chore: | refactor: | test:
   + registrar no log da TASK
-  DENY: commits em lote · Co-Authored-By · nomes TS-1|UT-1|IT-1
+  USE: Commiter Skill | `@[.ai_context/commiter]` |
 
 SCHEMA:
   alteração → identificar · atualizar DB.md · registrar no log
