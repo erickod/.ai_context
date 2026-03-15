@@ -21,7 +21,7 @@ DENY: pular · executar 2 por resposta · retroceder sem log.
 | daps-analyst  | .ai_context/daps-analyst/  |
 | planner       | .ai_context/planner/       |
 | test-analyst  | .ai_context/test-analyst/  |
-| eng           | .ai_context/senhor-eng/    |
+| eng           | .ai_context/eng/    |
 | code-reviewer | .ai_context/code-reviewer/ |
 
 Fontes transversais: DB.md · GUIDELINES.md
