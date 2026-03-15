@@ -29,7 +29,7 @@ Fontes transversais: DB.md · GUIDELINES.md
 ## MEMORY (cross-cutting — exceto commiter)
 SKILL: .ai_context/project-memory/
 CICLO OBRIGATÓRIO por invocação de qualquer role:
-  1. READ   → `cat PMEMORY.md` · verificar CURRENT_STATE · verificar BLOCKED ativo
+  1. READ   → `cat .ai_context/PMEMORY.md` · verificar CURRENT_STATE · verificar BLOCKED ativo
   2. ACT    → executar tarefa do role
   3. WRITE  → append de entrada no log (formato abaixo)
 

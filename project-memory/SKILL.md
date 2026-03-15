@@ -21,7 +21,7 @@ PRINCIPLE: append-only · máximo rastreabilidade · mínimo tokens por entrada
 
 ```
 MEMORY_FILE:   .ai_context/PMEMORY.md    # persistente entre sessões
-LOCK_SENTINEL: /.ai_context/PMEMORY.lock # evita escrita concorrente
+LOCK_SENTINEL: .ai_context/PMEMORY.lock # evita escrita concorrente
 ```
 
 Se `MEMORY_FILE` não existir → criar com cabeçalho (ver INIT).
