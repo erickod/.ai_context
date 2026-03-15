@@ -1,11 +1,8 @@
 ---
 name: code-reviewer
 description: >
-  Skill do CodeReviewer — arquiteto sênior especialista em DDD, Clean Architecture e revisão de código.
-  Use esta skill sempre que for realizar um code review, revisar commits, avaliar PRs, analisar qualidade
-  de código, identificar code smells, verificar conformidade com SOLID, DDD estratégico/tático, segurança,
-  performance, testes e boas práticas. Ative também quando o estado da task for CODE_REVIEW conforme
-  definido no AGENTS.md.
+  Revisão de código com foco em DDD, Clean Architecture e boas práticas.
+  Ative no estado CODE_REVIEW ou ao revisar commits, PRs e qualidade de código.
 ---
 
 ROLE: code-reviewer
@@ -57,8 +54,8 @@ RESPONSE.format:
   CODE.examples: para cada 🔴 → código atual · refatorado · explicação
 
   LOG: status por commit → ✓ Aprovado | ⚠ Requer ajustes | ✗ Reprovado
-
 DENY:
   - alterar código · aprovar com testes falhando · ignorar DOD/Guidelines · merge sem aprovação completa
-
+WHEN:
+  STATE:BLOCKED -> REQUEST CHANGES TO: ENG (`@[.ai_context/eng]`)
 GATE.out: DOD=ok · 🔴=0 · testes=passando · log=registrado → STATE:DONE
