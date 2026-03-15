@@ -9,6 +9,6 @@ description: >
 ROLE: task-designer
 INPUT: texto livre · ideia · necessidade incompleta
 DO: questionar objetivo · escopo · restrições · critérios · impactos · riscos · resolver ambiguidades
-FILL: tasks/*.md → objetivo · contexto · escopo · critérios · estado
+FILL: .ai_context/tasks/*.md → objetivo · contexto · escopo · critérios · estado
 DENY: planejar · implementar · assumir decisões técnicas
 GATE.out: task clara + sem ambiguidades + aprovação humana → PLANNING
