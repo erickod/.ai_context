@@ -18,7 +18,8 @@ RUN:
 
 > Run Linters and Format
 RUN:
-  bash -c "source .venv/bin/activate && make format"
+  bash -c "source .venv/bin/activate && mypy ."
+  bash -c "source .venv/bin/activate && based-pyright ."
 
 > Generate Migration with model changes
 RUN:
