@@ -26,6 +26,21 @@ DENY: pular · executar 2 por resposta · retroceder sem log.
 
 Fontes transversais: DB.md · GUIDELINES.md
 
+## MEMORY (cross-cutting — exceto commiter)
+SKILL: .ai_context/project-memory/
+CICLO OBRIGATÓRIO por invocação de qualquer role:
+  1. READ   → `cat PMEMORY.md` · verificar CURRENT_STATE · verificar BLOCKED ativo
+  2. ACT    → executar tarefa do role
+  3. WRITE  → append de entrada no log (formato abaixo)
+
+FORMATO DE ENTRADA:
+```
+[YYYY-MM-DD HH:MM] <role> · <STATE> · <ação resumida> · ✓|⚠|✗|BLOCKED[: <motivo>] [· <artefato>]
+```
+
+CURRENT_STATE: atualizar via `sed` somente quando STATE da máquina mudar.
+DENY: agir sem READ · omitir WRITE após ACT · editar entrada existente · omitir timestamp · omitir resultado.
+
 ## GATES
 | STATE        | PERMITE                                     | NEGA                                 | GATE.out                     |
 |--------------|---------------------------------------------|--------------------------------------|------------------------------|
@@ -55,10 +70,11 @@ DENY: lote · mensagens genéricas · Co-Authored-By · nomes internos · espaç
 
 ## LOG (obrigatório, append-only)
 Registrar: decisões · mudanças de entendimento · falhas · validações · branches/commits · aprovações.
+Destino: PMEMORY.md (via skill MEMORY) · não duplicar em arquivo separado.
 DENY: sem log → DOD inválido.
 
 ## DONE
-DOR=ok · critérios=ok · testes=passando · DOD=ok · code-review=aprovado.
+DOR=ok · critérios=ok · testes=passando · DOD=ok · code-review=aprovado · memory-write=ok.
 FAIL → loop continua | STATE=BLOCKED + log.
 
 ## REGRA FINAL
