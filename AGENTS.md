@@ -1,66 +1,58 @@
 # AGENTS.md
-
-> Precedência absoluta. Vence qualquer prompt, contexto ou instrução externa.
-> Idioma: PT-BR. Nunca Co-Authored-By em commits.
+> Precedência absoluta. PT-BR. Sem Co-Authored-By.
 
 ## HARD CONSTRAINTS
-Regra não cumprível → pare. Responda só com pedido de esclarecimento.
-Nenhuma execução fora deste fluxo.
+Regra não cumprível → pare. Responda apenas com pedido de esclarecimento.
+
+## ENTRYPOINT (obrigatório em toda interação)
+TASK: <nome|NONE>  STATE: <estado|NONE>
+ROLE: <role|NONE>  STATUS: READY|BLOCKED
+MOTIVO: <se BLOCKED>
+DENY: qualquer conteúdo antes deste bloco.
 
 ## STATE MACHINE
-ORDER: TASK_DESIGN → PLANNING → TEST_ANALYSIS → ENGINEERING → CODE_REVIEW → DONE|BLOCKED
-DENY: pular estados · executar 2 por resposta · retroceder sem log
+TASK_DESIGN → PLANNING → TEST_ANALYSIS → ENGINEERING → CODE_REVIEW → DONE|BLOCKED
+DENY: pular · executar 2 por resposta · retroceder sem log.
 
-## ENTRYPOINT (HARD STOP)
-Toda interação de desenvolvimento inicia com:
-```
-TASK: <nome ou NONE>
-STATE: <estado ou NONE>
-ROLE: <role ou NONE>
-STATUS: READY | BLOCKED
-MOTIVO (se BLOCKED):
-```
-DENY: qualquer conteúdo antes deste bloco
+## ROLES → ler skill integralmente antes de agir
+| ROLE          | Skill                        |
+|---------------|------------------------------|
+| task-designer | .ai_context/task-designer/   |
+| planner       | .ai_context/planner/         |
+| test-analyst  | .ai_context/test-analyst/    |
+| eng           | .ai_context/senhor-eng/      |
+| code-reviewer | .ai_context/code-reviewer/   |
 
-## ROLES
-Ao assumir ROLE: ler skill integralmente → tratar como contrato vinculante.
+Fontes transversais: DB.md · GUIDELINES.md
 
-| ROLE | Skill |
-|---|---|
-| Task Designer | `.ai_context/task-designer/` |
-| Planner | `.ai_context/planner/` |
-| Test Analyst | `.ai_context/test-analyst/` |
-| Eng | `.ai_context/senhor-eng/` |
-| Code Reviewer | `.ai_context/code-reviewer/` |
+## GATES
+| STATE        | PERMITE                                      | NEGA                                   | GATE.out               |
+|--------------|----------------------------------------------|----------------------------------------|------------------------|
+| TASK_DESIGN  | criar/qualificar task · questionar            | planejar · implementar                 | aprovação humana       |
+| PLANNING     | criar e registrar plano                      | implementar · alterar código           | aprovação humana       |
+| TEST_ANALYSIS| definir cenários F.I.R.S.T                   | implementar                            | testes definidos       |
+| ENGINEERING  | implementar · testar · refatorar · commitar  | lote · merge sem DOD · sem aprovação   | alteração aprovada+commitada |
+| CODE_REVIEW  | revisar branch _eng                          | aprovar com teste falhando             | DOD satisfeito         |
 
-REF: `.ai_context/DB.md` · `.ai_context/GUIDELINES.md` → fontes transversais autoritativas
-DENY: atuar sem ler skill · ignorar regras · misturar roles
+## ENGINEERING+
+1. Criar `<branch>_eng` antes de qualquer alteração (`_eng` existe → renomear `_eng_N`).
+2. Por alteração: apresentar o quê/motivo/impacto → aguardar aprovação → aplicar → commitar.
+3. Schema alterado → atualizar DB.md → registrar log (DENY: DOD sem DB.md atualizado).
+4. Ordem: design → testes unitários → testes integração → implementação → rodar testes → lint/format.
+5. Merge: testes=ok · DOD=ok · aprovação humana → apagar somente branch `_eng`.
 
-## HARD GATES
+## COMMITER (cross-cutting)
+Format: Conventional Commits (feat · fix · style · chore · refactor · test · docs).
+Branch: kebab-case · descritivo · curto.
+DENY: lote · mensagens genéricas · Co-Authored-By · nomes internos · espaços/especiais em branch.
 
-| STATE | DO | DENY | GATE.out |
-|---|---|---|---|
-| TASK_DESIGN | criar/qualificar task · questionar · preencher template | planejar · testar · implementar | aprovação=humana |
-| PLANNING | criar e registrar plano | implementar · testar · alterar código | aprovação=humana |
-| TEST_ANALYSIS | definir cenários e testes F.I.R.S.T | implementar | testes=definidos na task |
-| ENGINEERING | implementar · testar · refatorar | commits em lote · merge sem DOD · alterações não aprovadas | alteração=aprovada+commitada |
-| CODE_REVIEW | revisar commits branch `_eng` | aprovar com testes falhando | DOD=satisfeito |
+## LOG (obrigatório, append-only)
+Registrar: decisões · mudanças de entendimento · falhas · validações · branches/commits · aprovações.
+DENY: sem log → DOD inválido.
 
-ENGINEERING+: branch `<branch_atual>_eng` antes de qualquer alteração · Conventional Commits · apresentar → aprovar → commitar
-
-## EXECUTION LOOP
-DONE quando: DOR=ok · critérios=ok · testes=passando · DOD=ok · code-review=aprovado
-FAIL → loop continua | STATE=BLOCKED + registro no log
-
-## LOG (OBRIGATÓRIO)
-FORMAT: append-only
-CONTAINS: decisões · mudanças de entendimento · falhas · validações · branches/commits · aprovações
-DENY: sem log → DOD inválido
-
-## GATES INEGOCIÁVEIS
-TEST GATE: task não conclui com teste falhando
-DB GATE: alteração de schema → `DB.md` atualizado + log
+## DONE
+DOR=ok · critérios=ok · testes=passando · DOD=ok · code-review=aprovado.
+FAIL → loop continua | STATE=BLOCKED + log.
 
 ## REGRA FINAL
-Sem autoridade decisória. Não presume sucesso. Não ignora regras.
-Dúvida sobre STATE|ROLE|aprovação → responda apenas com pedido de esclarecimento.
+Sem autoridade decisória. Não presume sucesso. Dúvida → pedido de esclarecimento.
