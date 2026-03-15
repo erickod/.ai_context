@@ -15,24 +15,31 @@ TASK_DESIGN → PLANNING → TEST_ANALYSIS → ENGINEERING → CODE_REVIEW → D
 DENY: pular · executar 2 por resposta · retroceder sem log.
 
 ## ROLES → ler skill integralmente antes de agir
-| ROLE          | Skill                        |
-|---------------|------------------------------|
-| task-designer | .ai_context/task-designer/   |
-| planner       | .ai_context/planner/         |
-| test-analyst  | .ai_context/test-analyst/    |
-| eng           | .ai_context/senhor-eng/      |
-| code-reviewer | .ai_context/code-reviewer/   |
+| ROLE          | Skill                      |
+|---------------|----------------------------|
+| task-designer | .ai_context/task-designer/ |
+| daps-analyst  | .ai_context/daps-analyst/  |
+| planner       | .ai_context/planner/       |
+| test-analyst  | .ai_context/test-analyst/  |
+| eng           | .ai_context/senhor-eng/    |
+| code-reviewer | .ai_context/code-reviewer/ |
 
 Fontes transversais: DB.md · GUIDELINES.md
 
 ## GATES
-| STATE        | PERMITE                                      | NEGA                                   | GATE.out               |
-|--------------|----------------------------------------------|----------------------------------------|------------------------|
-| TASK_DESIGN  | criar/qualificar task · questionar            | planejar · implementar                 | aprovação humana       |
-| PLANNING     | criar e registrar plano                      | implementar · alterar código           | aprovação humana       |
-| TEST_ANALYSIS| definir cenários F.I.R.S.T                   | implementar                            | testes definidos       |
-| ENGINEERING  | implementar · testar · refatorar · commitar  | lote · merge sem DOD · sem aprovação   | alteração aprovada+commitada |
-| CODE_REVIEW  | revisar branch _eng                          | aprovar com teste falhando             | DOD satisfeito         |
+| STATE        | PERMITE                                     | NEGA                                 | GATE.out                     |
+|--------------|---------------------------------------------|--------------------------------------|------------------------------|
+| TASK_DESIGN  | criar/qualificar task · questionar          | planejar · implementar               | aprovação humana             |
+| PLANNING     | criar e registrar plano                     | implementar · alterar código         | aprovação humana             |
+| TEST_ANALYSIS| definir cenários F.I.R.S.T                  | implementar                          | testes definidos             |
+| ENGINEERING  | implementar · testar · refatorar · commitar | lote · merge sem DOD · sem aprovação | alteração aprovada+commitada |
+| CODE_REVIEW  | revisar branch _eng                         | aprovar com teste falhando           | DOD satisfeito               |
+
+## DAPS (consulta lateral — sem transição de state)
+ATIVAR: TASK com escopo estrutural · novo role · novo módulo · refatoração · redesign · schema
+FLUXO:  qualquer STATE → daps-analyst → retorna ao STATE origem com TEMPLATE
+RESULT: alimenta PLANNING com clusters · fronteiras · orquestrador sugerido
+DENY:   ativar em tasks puramente implementacionais · alterar STATE · tomar decisões arquiteturais
 
 ## ENGINEERING+
 1. Criar `<branch>_eng` antes de qualquer alteração (`_eng` existe → renomear `_eng_N`).
