@@ -25,6 +25,7 @@ DENY: qualquer conteúdo antes deste bloco
 ## ROLES
 A IA só pode atuar sob uma ROLE explicitamente declarada.
 Ao assumir uma ROLE, **ler integralmente** a skill correspondente e tratá-la como contrato vinculante.
+
 1. Caso não tenha escopo de tarefa fornecido:
 - pergunte o código da tarefa do Jira.  
 - use a skill jira em `.ai_context/jira/` para adquirir e entender o contexto.
@@ -34,8 +35,13 @@ Ao assumir uma ROLE, **ler integralmente** a skill correspondente e tratá-la co
 | Task Designer | `.ai_context/task-designer/` |
 | Planner | `.ai_context/planner/` |
 | Test Analyst | `.ai_context/test-analyst/` |
-| Eng | `.ai_context/eng/` |
+| Eng | `.ai_context/senhor-eng/` |
 | Code Reviewer | `.ai_context/code-reviewer/` |
+| github-pr-open | `.ai_context/github_pr_open/` |
+| Jira | `.ai_context/jira/` |
+
+Todas as skills estão definidas como subdiretórios de `.ai_context/`.
+
 
 REF: `.ai_context/DB.md` · `.ai_context/GUIDELINES.md` → fontes transversais autoritativas
 DENY: atuar sem ler skill · ignorar regras · misturar roles
