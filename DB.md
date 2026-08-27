@@ -402,3 +402,9 @@ Fila de jobs persistida para processamento assíncrono de tarefas. Infraestrutur
 ### [2026-02-21] — Inicialização do DB.md com schema real
 - Removido conteúdo de exemplo (SYSTEM, ROLE, PERMISSION, USER_ROLE, ROLE_PERMISSION)
 - Documentada tabela ACCOUNT conforme implementação em `easy_lease/account/infra/orm/sqlalchemy/models.py`
+
+### [2026-03-11] — Adição da coluna deprecated_at em PERMISSIONS (TASK-sync-capabilities)
+- Adicionada coluna `deprecated_at` (TIMESTAMPTZ, nullable, default NULL) na tabela `hades.permissions`
+- Semântica: timestamp de deprecação lógica de uma capability — distinto de `deleted_at` (remoção física)
+- Migração Alembic gerada: `hades/infra/alembic/versions/01f93e98700e_.py`
+- Coluna populada pelo `SyncSystemCapabilitiesUseCase` via repositório
