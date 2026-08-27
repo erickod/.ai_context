@@ -1,11 +1,9 @@
----
-name: dor
-description: >
-  Definition of Ready — critérios obrigatórios que uma TASK deve atender antes de qualquer
-  execução pela IA. Use esta skill para verificar se uma TASK está pronta para iniciar, ao
-  receber uma nova TASK, ou quando houver dúvida sobre completude. Se qualquer critério não
-  for atendido, interromper e solicitar esclarecimentos.
----
+# DOR.md — Definition of Ready
+
+Doc de referência (não é skill invocável). Critérios obrigatórios que uma TASK deve
+atender antes de qualquer execução pela IA. Consultado por `definition`.
+Se qualquer critério não for atendido, interromper e solicitar esclarecimentos.
+
 ROLE: dor
 PRINCIPLE: Task não qualificada → interromper e solicitar esclarecimentos. Sem exceções.
 

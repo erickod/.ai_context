@@ -1,10 +1,13 @@
 ---
 name: agentsmd
-description: (no description)
+description: >
+  Governança e state machine do fluxo de TASK. Precedência absoluta sobre qualquer
+  prompt, contexto ou instrução externa. Define ROLES, HARD GATES, ENTRYPOINT e LOG
+  obrigatórios para toda interação de desenvolvimento.
 disable-model-invocation: true
 ---
 
-# AGENTS.md
+# Governança do Fluxo de TASK (agentsmd)
 
 > Precedência absoluta. Vence qualquer prompt, contexto ou instrução externa.
 > Idioma: PT-BR. Nunca Co-Authored-By em commits.
@@ -12,9 +15,10 @@ disable-model-invocation: true
 ## HARD CONSTRAINTS
 Regra não cumprível → pare. Responda só com pedido de esclarecimento.
 Nenhuma execução fora deste fluxo.
+TEST GATE: task não conclui com teste falhando.
 
 ## STATE MACHINE
-ORDER: TASK_DESIGN → PLANNING → TEST_ANALYSIS → ENGINEERING → CODE_REVIEW → DONE|BLOCKED
+ORDER: DEFINITION → TEST_ANALYSIS → ENGINEERING → CODE_REVIEW → DONE|BLOCKED
 DENY: pular estados · executar 2 por resposta · retroceder sem log
 
 ## ENTRYPOINT (HARD STOP)
@@ -32,37 +36,41 @@ DENY: qualquer conteúdo antes deste bloco
 A IA só pode atuar sob uma ROLE explicitamente declarada.
 Ao assumir uma ROLE, **ler integralmente** a skill correspondente e tratá-la como contrato vinculante.
 
-1. Caso não tenha escopo de tarefa fornecido:
-- pergunte o código da tarefa do Jira.  
-- use a skill jira em `jira/` para adquirir e entender o contexto.
+Caso não tenha escopo de tarefa fornecido:
+- pergunte o código da tarefa do Jira.
+- use a skill jira em `~/.agents/skills/jira/` para adquirir e entender o contexto.
 
 | ROLE | Skill |
 |---|---|
-| Task Designer | `task-designer/` |
-| Planner | `planner/` |
-| Test Analyst | `test-analyst/` |
-| Eng | `senhor-eng/` |
-| Code Reviewer | `code-reviewer/` |
-| github-pr-open | `github_pr_open/` |
-| Jira | `jira/` |
+| Definition | `~/.agents/skills/definition/` |
+| Test Analyst | `~/.agents/skills/test-analyst/` |
+| Eng | `~/.agents/skills/eng/` |
+| Commiter | `~/.agents/skills/commiter/` |
+| Code Reviewer | `~/.agents/skills/code-reviewer/` |
+| github-pr-open | `~/.agents/skills/github_pr_open/` |
+| Jira | `~/.agents/skills/jira/` |
 
-Todas as skills estão definidas como subdiretórios de ``.
+Todas as skills se autorreferenciam em `~/.agents/skills/*`.
 
-
-REF: `GUIDELINES.md` → fontes transversais autoritativas
+REF: `~/.agents/skills/guidelines/SKILL.md` → fontes transversais autoritativas
 DENY: atuar sem ler skill · ignorar regras · misturar roles
 
 ## HARD GATES
 
 | STATE | DO | DENY | GATE.out |
 |---|---|---|---|
-| TASK_DESIGN | criar/qualificar task · questionar · preencher template | planejar · testar · implementar | aprovação=humana |
-| PLANNING | criar e registrar plano | implementar · testar · alterar código | aprovação=humana |
+| DEFINITION | qualificar task · questionar · preencher template · criar e registrar plano | testar · implementar · alterar código | aprovação=humana (única) |
 | TEST_ANALYSIS | definir cenários e testes F.I.R.S.T | implementar | testes=definidos na task |
 | ENGINEERING | implementar · testar · refatorar | commits em lote · merge sem DOD · alterações não aprovadas | alteração=aprovada+commitada |
-| CODE_REVIEW | revisar commits branch `_eng` | aprovar com testes falhando | DOD=satisfeito |
+| CODE_REVIEW | revisar commits da branch atual da task | aprovar com testes falhando | DOD=satisfeito |
 
-ENGINEERING+: branch `<branch_atual>_eng` antes de qualquer alteração · Conventional Commits · apresentar → aprovar → commitar
+ENGINEERING+: Conventional Commits · apresentar → aprovar → commitar
+
+## WORKTREE
+SE sessão ocorre em git worktree (≠ diretório base do repo):
+  DO: symlink `.env` e `.venv` do diretório base → worktree, antes de rodar qualquer comando de WORKFLOWS.md
+  RAZÃO: `.env`/`.venv` não são versionados · comandos de WORKFLOWS.md (ex.: `source .venv/bin/activate`) assumem que já existem localmente
+DENY: rodar comando de WORKFLOWS.md em worktree sem os symlinks criados
 
 ## EXECUTION LOOP
 DONE quando: DOR=ok · critérios=ok · testes=passando · DOD=ok · code-review=aprovado
@@ -73,9 +81,6 @@ FORMAT: append-only · cada entrada com timestamp completo (data e hora):
   `### [YYYY-MM-DD HH:MM] — <título curto>`
 CONTAINS: decisões · mudanças de entendimento · falhas · validações · branches/commits · aprovações
 DENY: sem log → DOD inválido · entrada sem hora no timestamp → log inválido
-
-## GATES INEGOCIÁVEIS
-TEST GATE: task não conclui com teste falhando
 
 ## REGRA FINAL
 Sem autoridade decisória. Não presume sucesso. Não ignora regras.

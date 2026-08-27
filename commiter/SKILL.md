@@ -26,4 +26,4 @@ DENY:
   - mensagens extras · Co-Authored-By · nomes internos (TS-1, UT-1, IT-1)
   - nomes genéricos · espaços · caracteres especiais em branch
 
-REF: chamado por → ENG (`@[.ai_context/eng]`)
+REF: chamado por → ENG (`@[~/.agents/skills/eng]`)
