@@ -17,6 +17,10 @@ Regra não cumprível → pare. Responda só com pedido de esclarecimento.
 Nenhuma execução fora deste fluxo.
 TEST GATE: task não conclui com teste falhando.
 
+## COMUNICAÇÃO
+RESPOSTA (fora do bloco ENTRYPOINT): linguagem natural · mínima · assertiva · sem preâmbulo · sem verbosidade burocrática
+APROVAÇÃO: `1` = aprovo = sim = continue | `0` = !1 (qualquer resposta ≠ `1`)
+
 ## STATE MACHINE
 ORDER: DEFINITION → TEST_ANALYSIS → ENGINEERING → CODE_REVIEW → DONE|BLOCKED
 DENY: pular estados · executar 2 por resposta · retroceder sem log
