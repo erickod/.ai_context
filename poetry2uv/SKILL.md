@@ -28,6 +28,8 @@ DO:
       - substituir comandos: `poetry install` → `uv sync --frozen --all-groups` (ou `--no-dev` conforme escopo)
       - substituir execuções diretas: `poetry run <cmd>` → `uv run <cmd>`
       - eliminar etapas intermediárias redundantes (ex: `poetry export` para requirements.txt temporários)
+      - ao invocar `docker build` no workflow, montar segredos via BuildKit (`--secret id=<nome>,src=<arquivo_temp>`) em vez de `--build-arg` com URL/token do registry embutido
+      - atualizar `.github/dependabot.yml`: `package-ecosystem: "pip"` → `"uv"`
   + Docker & Containerização:
       - instalar binário uv diretamente via multi-stage: `COPY --from=ghcr.io/astral-sh/uv:<version> /uv /usr/local/bin/uv`
       - configurar variáveis de ambiente de runtime/build:
@@ -36,20 +38,26 @@ DO:
           * `ENV PATH="/app/.venv/bin:$PATH"`
       - montar tokens/chaves privadas de forma segura via BuildKit: `RUN --mount=type=secret,id=gcloud_token ...`
       - executar instalação limpa e desacoplada: `uv sync --frozen --all-groups --no-dev`
+      - separar estágio `builder` (compila deps com `--no-install-project`) do estágio runtime: copiar apenas `/app/.venv` + código-fonte, aplicar `apk/apt upgrade` para CVEs do SO base e remover `pip`/`setuptools`/`wheel` herdados da imagem Python base (não usados em runtime gerido por uv)
+      - criar/atualizar `.dockerignore` (`.git`, `.github`, `.venv`, `venv`, `.ruff_cache`, `.mypy_cache`, `.ty`, `.pytest_cache`, `.coverage*`, `docs`)
+      - revalidar o caminho do `ENTRYPOINT`/scripts referenciados sempre que `WORKDIR` ou a estrutura de estágios mudar
   + Automação local (Makefile, scripts, docs):
-      - prefixar runners de lint, test e migrations com `uv run` (pytest, black, flake8, alembic, etc.)
+      - prefixar runners de lint, test e migrations com `uv run` (pytest, ruff, alembic, etc.)
       - atualizar targets de setup/init com suporte a credenciais e `uv sync`
       - documentar fluxos de onboarding (`uv sync --all-groups`, `uv lock --upgrade`) no `README.md`
   + Lockfile & Validação:
       - remover `poetry.lock` legado
       - gerar e validar novo lockfile determinístico: `uv lock` / `uv sync`
-      - validar consistência estática (`uv run flake8/mypy`) e testes (`uv run pytest`)
+      - validar consistência estática e testes com as ferramentas alvo definidas por `[[impl-ruff-with-precommit]]` (Ruff + ty — nunca `flake8`/`black`/`mypy` residuais) e `uv run pytest`
+      - revisar bumps de versão maior resolvidos pelo novo lockfile quanto a quebras de API em testes (ex.: `httpx>=0.28` remove `AsyncClient(app=...)` → migrar para `AsyncClient(transport=ASGITransport(app=app), ...)`)
 
 DENY:
-  - expor tokens em ARG de Dockerfile ou logs sem uso de secrets
+  - expor tokens em ARG de Dockerfile, `docker build --build-arg` ou logs sem uso de secrets
   - manter artefatos residuais do Poetry (`poetry.lock`, plugins de export)
   - permitir divergência de versões entre spec PEP 621 e dependências já fixadas
   - ignorar scripts, targets de Makefile ou documentações operacionais da raiz
+  - concluir a migração com dois typecheckers coexistindo (ex.: `mypy` e `ty` ambos instalados/configurados mas só um efetivamente rodando em `make`/pre-commit) — escolher a ferramenta alvo e remover a outra por completo
+  - misturar correções de bug de aplicação (lógica de negócio, dados de teste) no mesmo commit/PR da migração de toolchain — manter atomicidade (ver [[commiter]])
 
 TEMPLATE:
 ```markdown
@@ -66,12 +74,17 @@ TEMPLATE:
 - [ ] Configuração das variáveis `UV_INDEX_*` para autenticação
 - [ ] Reescrita dos runners: `poetry run/install` → `uv run/sync`
 - [ ] Remoção de steps de exportação desnecessários
+- [ ] `docker build` no CI usando `--secret` (nunca `--build-arg` com token/URL)
+- [ ] `dependabot.yml`: `package-ecosystem: "uv"`
 
 ### 3. Containerização (Dockerfile & Compose)
 - [ ] Inclusão do binário `COPY --from=ghcr.io/astral-sh/uv /uv /usr/local/bin/uv`
 - [ ] Setup do ambiente virtual: `UV_PROJECT_ENVIRONMENT` e `PATH`
 - [ ] Injeção de autenticação com `--mount=type=secret` no build
 - [ ] Sincronização de produção: `uv sync --frozen --no-dev`
+- [ ] Estágio `builder` separado do runtime; `apk/apt upgrade` + remoção de pip/setuptools/wheel herdados
+- [ ] `.dockerignore` criado/atualizado
+- [ ] `ENTRYPOINT`/scripts revalidados após mudança de `WORKDIR`
 
 ### 4. Scripts, Makefile e Documentação
 - [ ] Atualização de targets do Makefile com `uv run` e `uv sync`
@@ -79,6 +92,9 @@ TEMPLATE:
 
 ### 5. Gates de Validação
 - [ ] `uv lock --check` ou `uv sync --all-groups` sem erros
-- [ ] Sucesso na execução da suíte de testes (`uv run pytest`)
+- [ ] Um único typechecker configurado e efetivamente executado (Ruff + ty, ver [[impl-ruff-with-precommit]])
+- [ ] Sucesso na execução da suíte de testes (`uv run pytest`), incluindo revisão de quebras por bump de versão (ex.: `httpx` `AsyncClient`/`ASGITransport`)
 - [ ] Validação de build do Docker sem vazamento de credenciais
-GATE.out: pyproject=PEP621 · lockfile=uv.lock · workflows_github=uv-ready · docker=buildkit-uv · makefile=uv-run · tests=passed → STATE:IMPLEMENTATION_VERIFIED
+GATE.out: pyproject=PEP621 · lockfile=uv.lock · workflows_github=uv-ready · docker=buildkit-uv · makefile=uv-run · typecheck=single-tool · tests=passed → STATE:IMPLEMENTATION_VERIFIED
+
+REF: typechecker/lint alvo pós-migração → `[[impl-ruff-with-precommit]]` · atomicidade de commits → `[[commiter]]`
