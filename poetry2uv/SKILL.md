@@ -4,8 +4,9 @@ description: >
   Role Migrator — especializado na migração completa e determinística de toolchains
   Poetry para uv em projetos Python. Cobre desde a conversão de pyproject.toml
   (PEP 621, [dependency-groups], [tool.uv.index]), autenticação em registries privados
-  (GCP Artifact Registry / UV_INDEX_*), refatoração de Makefiles/scripts, reescrita
-  de CI/CD GitHub Actions (astral-sh/setup-uv) até modernização de Dockerfiles
+  (GCP Artifact Registry / UV_INDEX_*), refatoração de Makefiles/scripts (target `sync`
+  como único ponto de entrada), reescrita de CI/CD GitHub Actions minimizando actions
+  de terceiros (actions/setup-python + pip install uv) até modernização de Dockerfiles
   (BuildKit secrets, links estáticos ghcr.io/astral-sh/uv e virtualenvs padronizadas).
 ---
 
@@ -24,11 +25,10 @@ DO:
       - remover totalmente tabelas `[tool.poetry*]` legadas do Poetry
       - `[build-system]`: se `tool.uv.package = false`, remover a tabela por completo (não há build a fazer); se o projeto continuar sendo empacotado (`package = true` ou lib distribuída), substituir `poetry-core` por `setuptools>=68` (`build-backend = "setuptools.build_meta"`) — nunca deixar `requires = ["poetry-core"]` residual
   + CI/CD (.github/workflows/):
-      - substituir ações legadas/pip/poetry por `astral-sh/setup-uv@v5` com `enable-cache: true`
-      - configurar autenticação de registries privados via env:
-          * `UV_INDEX_<NAME>_USERNAME: <user/oauth2accesstoken>`
-          * `UV_INDEX_<NAME>_PASSWORD: <token/gcloud auth print-access-token>`
-      - substituir comandos: `poetry install` → `uv sync --frozen --all-groups` (ou `--no-dev` conforme escopo)
+      - preferir instalar Python via `actions/setup-python@v5` (`with: python-version: "<versão>"`) e instalar o `uv` via `pip` (`python -m pip install --upgrade pip && pip install uv`) em vez de `astral-sh/setup-uv@v5` — reduz dependência de actions de terceiros; usar `astral-sh/setup-uv@v5` apenas se o projeto já exigir explicitamente o cache nativo dessa action
+      - após instalar o `uv`, delegar a instalação de dependências ao target `make sync` do Makefile (nunca duplicar a lógica de autenticação/`uv sync` diretamente no step do workflow) — ver especificação do target `sync` em "Automação local"
+      - garantir que o `gcloud` CLI já esteja autenticado por um step anterior (ex.: `google-github-actions/auth`) antes do `make sync`, pois o target depende de `gcloud auth print-access-token`
+      - substituir comandos: `poetry install` → `make sync`
       - substituir execuções diretas: `poetry run <cmd>` → `uv run <cmd>`
       - eliminar etapas intermediárias redundantes (ex: `poetry export` para requirements.txt temporários)
       - ao invocar `docker build` no workflow, montar segredos via BuildKit (`--secret id=<nome>,src=<arquivo_temp>`) em vez de `--build-arg` com URL/token do registry embutido
@@ -46,8 +46,17 @@ DO:
       - revalidar o caminho do `ENTRYPOINT`/scripts referenciados sempre que `WORKDIR` ou a estrutura de estágios mudar
   + Automação local (Makefile, scripts, docs):
       - prefixar runners de lint, test e migrations com `uv run` (pytest, ruff, alembic, etc.)
-      - atualizar targets de setup/init com suporte a credenciais e `uv sync`
-      - documentar fluxos de onboarding (`uv sync --all-groups`, `uv lock --upgrade`) no `README.md`
+      - criar/atualizar o target `sync` como único ponto de entrada para instalar dependências (local e CI), autenticando o índice privado inline via env vars e sincronizando todos os grupos:
+        ```makefile
+        .PHONY: sync
+        sync:
+        	@UV_INDEX_GCLOUD_USERNAME=oauth2accesstoken \
+        	UV_INDEX_GCLOUD_PASSWORD="$$(gcloud auth print-access-token)" \
+        	uv sync --all-groups
+        ```
+      - se a adoção de hooks locais via pre-commit tiver sido confirmada com o usuário (ver seção de Lockfile & Validação / `[[impl-ruff-with-precommit]]`), encadear `@make setup-hooks` ao final do target `sync`; caso contrário, manter o target apenas com o `uv sync`
+      - o nome do índice/variáveis (`UV_INDEX_GCLOUD_*`) deve espelhar exatamente o `name` configurado em `[[tool.uv.index]]` no `pyproject.toml` (ex.: índice `gcloud` → `UV_INDEX_GCLOUD_USERNAME`/`UV_INDEX_GCLOUD_PASSWORD`)
+      - documentar fluxos de onboarding (`make sync`, `uv lock --upgrade`) no `README.md`
   + Lockfile & Validação:
       - remover `poetry.lock` legado
       - gerar e validar novo lockfile determinístico: `uv lock` / `uv sync`
@@ -75,9 +84,9 @@ TEMPLATE:
 - [ ] Remoção de artefatos legados: `rm poetry.lock` e geração de `uv.lock`
 
 ### 2. Pipelines CI/CD (.github/)
-- [ ] Adoção de `astral-sh/setup-uv@v5` (cache habilitado)
-- [ ] Configuração das variáveis `UV_INDEX_*` para autenticação
-- [ ] Reescrita dos runners: `poetry run/install` → `uv run/sync`
+- [ ] Setup de Python via `actions/setup-python@v5` + `pip install uv` (evitar `astral-sh/setup-uv@v5` salvo necessidade explicita de cache nativo)
+- [ ] Step de autenticação `gcloud` executado antes de qualquer `make sync`
+- [ ] Reescrita dos runners: `poetry install` → `make sync` · `poetry run <cmd>` → `uv run <cmd>`
 - [ ] Remoção de steps de exportação desnecessários
 - [ ] `docker build` no CI usando `--secret` (nunca `--build-arg` com token/URL)
 - [ ] `dependabot.yml`: `package-ecosystem: "uv"`
@@ -92,8 +101,9 @@ TEMPLATE:
 - [ ] `ENTRYPOINT`/scripts revalidados após mudança de `WORKDIR`
 
 ### 4. Scripts, Makefile e Documentação
-- [ ] Atualização de targets do Makefile com `uv run` e `uv sync`
-- [ ] Atualização de instruções de setup no `README.md`
+- [ ] Target `sync` criado/atualizado como único ponto de entrada (autenticação `UV_INDEX_*` inline + `uv sync --all-groups` + `setup-hooks` condicional)
+- [ ] Demais targets de lint/test/migrations prefixados com `uv run`
+- [ ] Atualização de instruções de setup no `README.md` (`make sync`)
 
 ### 5. Gates de Validação
 - [ ] `uv lock --check` ou `uv sync --all-groups` sem erros
