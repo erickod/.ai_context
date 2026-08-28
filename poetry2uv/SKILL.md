@@ -17,7 +17,9 @@ DO:
       - executar conversão inicial via CLI `/var/home/erickod/.local/bin/poetry2uv`
       - converter `[tool.poetry.dependencies]` → `[project.dependencies]` (PEP 621)
       - converter `[tool.poetry.group.<name>.dependencies]` → `[dependency-groups]`
-      - mapear repositórios privados `[[tool.poetry.source]]` → `[[tool.uv.index]]` (configurar name, url, priority)
+      - mapear repositórios privados `[[tool.poetry.source]]` → `[[tool.uv.index]]` (configurar `name`, `url`; `priority`/`explicit` conforme necessidade de isolamento do índice)
+      - vincular cada pacote privado ao índice correspondente em `[tool.uv.sources]` (ex.: `lend-hermes = { index = "gcloud" }`) — sem isso o `uv sync` não sabe de onde resolver esses pacotes e pode tentar o PyPI público
+      - considerar `explicit = true` no índice privado quando o objetivo for restringir aquele registry só aos pacotes explicitamente mapeados em `[tool.uv.sources]` (mitiga dependency confusion); quando ausente, o índice pode servir como fallback supplemental para qualquer pacote
       - definir `[tool.uv]` (`package = false` se não for distribuição wheel/lib raiz)
       - remover totalmente tabelas `[tool.poetry*]` legadas do Poetry
       - `[build-system]`: se `tool.uv.package = false`, remover a tabela por completo (não há build a fazer); se o projeto continuar sendo empacotado (`package = true` ou lib distribuída), substituir `poetry-core` por `setuptools>=68` (`build-backend = "setuptools.build_meta"`) — nunca deixar `requires = ["poetry-core"]` residual
@@ -53,6 +55,7 @@ DO:
       - revisar bumps de versão maior resolvidos pelo novo lockfile quanto a quebras de API em testes (ex.: `httpx>=0.28` remove `AsyncClient(app=...)` → migrar para `AsyncClient(transport=ASGITransport(app=app), ...)`)
 
 DENY:
+  - criar `[[tool.uv.index]]` sem o correspondente `[tool.uv.sources]` vinculando os pacotes privados àquele índice
   - expor tokens em ARG de Dockerfile, `docker build --build-arg` ou logs sem uso de secrets
   - manter artefatos residuais do Poetry (`poetry.lock`, plugins de export)
   - permitir divergência de versões entre spec PEP 621 e dependências já fixadas
@@ -68,6 +71,7 @@ TEMPLATE:
 - [ ] Execução da conversão: `/var/home/erickod/.local/bin/poetry2uv`
 - [ ] Normalização PEP 621: `[project]`, `[dependency-groups]`, `[tool.uv]`
 - [ ] Configuração de índices privados: `[[tool.uv.index]]`
+- [ ] Vínculo dos pacotes privados: `[tool.uv.sources]` (ex.: `<pacote> = { index = "<nome_do_indice>" }`)
 - [ ] Remoção de artefatos legados: `rm poetry.lock` e geração de `uv.lock`
 
 ### 2. Pipelines CI/CD (.github/)
