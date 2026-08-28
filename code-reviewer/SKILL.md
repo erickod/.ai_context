@@ -44,6 +44,8 @@ OUTPUT:
     🟢 nice-to-have    → sugestão · benefício
   LOG: por commit → ✓ | ⚠ | ✗
 
+PUBLICAÇÃO (opcional): se usuário pedir para publicar/postar a review no PR → `~/.agents/skills/publish_codereview/SKILL.md` (reaproveita SUMMARY/ANALYSIS/ACTIONS já produzidos aqui, nunca re-analisa do zero)
+
 GATE:
   DoD=ok · 🔴=0 · testes=ok · log=ok → STATE:DONE
   else → STATE:BLOCKED → REQUEST CHANGES: ENG (@[~/.agents/skills/eng])
