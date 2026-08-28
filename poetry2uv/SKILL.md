@@ -19,7 +19,8 @@ DO:
       - converter `[tool.poetry.group.<name>.dependencies]` → `[dependency-groups]`
       - mapear repositórios privados `[[tool.poetry.source]]` → `[[tool.uv.index]]` (configurar name, url, priority)
       - definir `[tool.uv]` (`package = false` se não for distribuição wheel/lib raiz)
-      - remover totalmente tabelas `[tool.poetry*]` e `[build-system]` legadas do Poetry
+      - remover totalmente tabelas `[tool.poetry*]` legadas do Poetry
+      - `[build-system]`: se `tool.uv.package = false`, remover a tabela por completo (não há build a fazer); se o projeto continuar sendo empacotado (`package = true` ou lib distribuída), substituir `poetry-core` por `setuptools>=68` (`build-backend = "setuptools.build_meta"`) — nunca deixar `requires = ["poetry-core"]` residual
   + CI/CD (.github/workflows/):
       - substituir ações legadas/pip/poetry por `astral-sh/setup-uv@v5` com `enable-cache: true`
       - configurar autenticação de registries privados via env:
