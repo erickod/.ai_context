@@ -92,11 +92,11 @@ TEMPLATE:
 - [ ] `dependabot.yml`: `package-ecosystem: "uv"`
 
 ### 3. Containerização (Dockerfile & Compose)
-- [ ] Inclusão do binário `COPY --from=ghcr.io/astral-sh/uv /uv /usr/local/bin/uv`
+- [ ] Inclusão do binário `COPY --from=ghcr.io/astral-sh/uv:<version> /uv /usr/local/bin/uv`
 - [ ] Setup do ambiente virtual: `UV_PROJECT_ENVIRONMENT` e `PATH`
 - [ ] Injeção de autenticação com `--mount=type=secret` no build
-- [ ] Sincronização de produção: `uv sync --frozen --no-dev`
-- [ ] Estágio `builder` separado do runtime; `apk/apt upgrade` + remoção de pip/setuptools/wheel herdados
+- [ ] Sincronização de produção: `uv sync --frozen --all-groups --no-dev`
+- [ ] Estágio `builder` separado do runtime; `apk/apt upgrade` + [Opcional | Perguntar] remoção de pip/setuptools/wheel herdados
 - [ ] `.dockerignore` criado/atualizado
 - [ ] `ENTRYPOINT`/scripts revalidados após mudança de `WORKDIR`
 
