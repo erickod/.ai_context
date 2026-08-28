@@ -31,7 +31,7 @@ exec_order:
   3. testes integração
   4. implementação
   5. rodar testes → falha: corrigir + commitar
-  6. format/lint (WORKFLOWS.md) → commitar `style: format`
+  6. format/lint (WORKFLOWS.md) + typehints, se Python (`~/.agents/skills/python-typehints-upgrade/SKILL.md`) → commitar `style: format`
   DENY: pular etapas · escrever testes após implementação
 
 branch:

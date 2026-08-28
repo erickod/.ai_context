@@ -23,7 +23,7 @@ CRITERIA:
   readability: nomes · DRY · ciclomática<10 · comentários explicam porquê
   layers:    UI→App→Domain←Infra · deps apontam pro domínio
   tests:     cobertura · gaps · sem over-mocking
-  format:    sem dead/unused · PEP8 · 79–120 chars
+  format:    sem dead/unused · PEP8 · 79–120 chars · typehints modernizados p/ versão-alvo, se Python (`~/.agents/skills/python-typehints-upgrade/SKILL.md`)
 
 ¹smells: Long Method/Class · Long Params · Data Clumps · Primitive Obsession
   Switch Stmts · Refused Bequest · Divergent Change · Shotgun Surgery
