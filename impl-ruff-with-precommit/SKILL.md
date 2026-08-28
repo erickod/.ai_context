@@ -16,13 +16,22 @@ DO:
       - `[tool.isort]`: `profile`, `skip`/`exclude`
       - `[tool.mypy]` / `mypy.ini` / `setup.cfg [mypy]`: `python_version`, `strict`, `ignore_missing_imports`, `exclude`, `disable_error_code`, overrides por módulo (`[[tool.mypy.overrides]]`)
   + atualizar deps no `pyproject.toml`: remover `black`, `isort`, `flake8`, `unify`, `mypy` · adicionar `ruff`, `ty`, `pre-commit`, `commitizen`
-  + configurar `[tool.ruff]` no `pyproject.toml` replicando paridade: `line-length`, `exclude`, `lint.select`, `lint.ignore`, `lint.per-file-ignores`, `format`
-  + configurar `[tool.ty]` no `pyproject.toml` replicando paridade com `[tool.mypy]`: `environment.python-version`, `src.exclude`, `rules` (mapear `disable_error_code`/severidades), overrides por módulo (`[[tool.ty.overrides]]`)
+  + configurar `[tool.ruff]` no `pyproject.toml`:
+      - `line-length`, `target-version`, `extend-exclude`
+      - `lint.select = ["E", "F", "I", "B", "UP", "SIM"]` (ou regras equivalentes do projeto)
+      - `lint.ignore = ["UP006", "UP035"]` (isolar sintaxe legada de typing até o step `[[python-typehints-upgrade]]`)
+      - `format.quote-style = "preserve"` (quando o projeto usava `skip-string-normalization`)
+      - `lint.per-file-ignores` para exceções pontuais
+  + configurar `[tool.ty]` no `pyproject.toml`:
+      - `environment.python-version`, `src.exclude`, `rules` (mapear `disable_error_code`/severidades)
+      - `[tool.ty.analysis] respect-type-ignore-comments = true` (preservar `# type: ignore` legados até triagem de divergências)
+      - overrides por módulo (`[[tool.ty.overrides]]`)
+  + validar `[tool.ruff] extend-exclude`: padrões sem `/` (ex.: `"data"`) casam com qualquer diretório de mesmo nome em toda a árvore — conferir contra a estrutura real do repo antes de portar de outro projeto de referência, para não excluir silenciosamente módulos como `<app_folder>/*/data`
   + remover arquivos residuais: `.flake8`, `mypy.ini`, seção `[mypy]` em `setup.cfg`, diretório `.husky/`
   + criar `.pre-commit-config.yaml` com hooks locais (`fail_fast: true`, stages `pre-push`): `ruff-check`, `ruff-format`, `ty-check`, `pytest-check`, `integration-tests`
   + atualizar `Makefile`:
       - target `format`: encadear `ruff check --fix` → `ruff format` → `ruff format --check` → `typecheck`
-      - target `typecheck`: substituir `mypy` por `[poetry|uv] run ty check`
+      - target `typecheck`: substituir `mypy` por `[poetry|uv] run ty check <app_folder>/`
       - target `setup-hooks`: `[poetry|uv] run pre-commit install --hook-type pre-push`
       - target `init`: incluir chamada para `setup-hooks` (remover chamada a `husky`)
   + rodar auto-fix na base de código: import sorting, F401/F403 (marcar noqa/all quando necessário), formatação de tuplas/asserts
@@ -34,6 +43,7 @@ DENY:
   - forçar aspas duplas se o projeto usava `skip-string-normalization = true`
   - manter chamadas de `flake8`, `black`, `isort`, `mypy` ou `husky` no Makefile/CI
   - suprimir globalmente erros de tipo do `ty` (`ty: ignore` em arquivo inteiro) só para "fazer passar" sem revisar a divergência de `mypy`
+  - portar `extend-exclude`/`lint.ignore` de outro projeto sem revisar cada entrada contra a estrutura e o estágio de migração deste repo
   - alterar lógica de negócio durante a auto-formatação ou o ajuste de tipos
   - comitar sem validação de hooks ativos
 
