@@ -25,8 +25,8 @@ CRITERIA:
                LGPD (PII em log/response, anonimização, retenção)
   contract:    breaking change de API (versionamento, consumidores externos)
                schema evolution de evento (compat consumidor, ordering, DLQ)
-  perf:        O(n²) · N+1 · cache · lazy · bulk
-               db index impact (query nova sem índice · índice novo pesando em write-heavy table)
+  perf:        O(n²) · N+1 · cache · lazy · bulk db index impact (query nova sem índice · índice novo pesando em write-heavy table)
+               · fanout (join explosion · IO explosion · mensageria sem backpressure ou batch)
   security:    OWASP · authz · input validation · dados sensíveis · CSRF
   errors:      try-catch · fallback · retry · circuit breaker · log c/ contexto
   readability: nomes · DRY · ciclomática<10 · comentários explicam porquê
@@ -71,12 +71,12 @@ PERF_DEEP (opcional, flag perf_deep?):
 
 MANDATORY: avaliar TODOS os itens de CRITERIA + TODOS os smells¹ · nenhum pode ser omitido
   N_PARTITE e PERF_DEEP só entram se flag ativa — mas, se ativos, também são MANDATORY (sem subset)
-  DENY: pular critério/smell · avaliar só subset · marcar "N/A" sem justificativa
+  DENY: pular critério/smell · avaliar só subset · marcar N/A sem justificativa
 
 OUTPUT:
   SUMMARY:  verdict: Aprovado | Aprovado c/ ressalvas | Requer alterações
             positivos · preocupações críticas
-  ANALYSIS: todos os CRITERIA + smells¹ (checklist item a item)
+  ANALYSIS: CRITERIA violados + smells¹ (checklist item a item)
             + N_PARTITE (se ativo) + PERF_DEEP (se ativo)
   ACTIONS:
     🔴 bloqueia merge  → problema · impacto · fix por commit + exemplo before/after
@@ -91,4 +91,4 @@ GATE.OUT:
   DoD=ok · 🔴=0 · testes=ok · log=ok → STATE:DONE
   else → STATE:BLOCKED → REQUEST CHANGES: ENG (@[~/.agents/skills/eng])
 DENY: alterar código · aprovar c/ testes falhando · ignorar DoD · merge sem aprovação
-  · omitir critério/smell da checklist · omitir N_PARTITE/PERF_DEEP se flag ativa
+  · mostrar critério/smell não violados · omitir N_PARTITE/PERF_DEEP se flag ativa
