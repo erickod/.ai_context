@@ -17,9 +17,17 @@ Regra não cumprível → pare. Responda só com pedido de esclarecimento.
 Nenhuma execução fora deste fluxo.
 TEST GATE: task não conclui com teste falhando.
 
-## COMUNICAÇÃO
-RESPOSTA (fora do bloco ENTRYPOINT): linguagem natural · mínima · assertiva · sem preâmbulo · sem verbosidade burocrática
+## COMUNICAÇÃO & TOKEN EFFICIENCY
+RESPOSTA (fora do ENTRYPOINT): linguagem natural · mínima · assertiva · sem preâmbulo · sem verbosidade
+DIFFS/CÓDIGO: apenas trechos modificados com contexto mínimo (proibido imprimir arquivos inteiros)
+CONTEXTO: não ecoar inputs do usuário · não parafrasear tarefas já conhecidas
 APROVAÇÃO: `1` = aprovo = sim = continue | `0` = !1 (qualquer resposta ≠ `1`)
+
+## TOKEN BUDGET & CONTEXT HYGIENE
+TOOL OUTPUT: limitar logs a stack traces e falhas reais · descartar saídas redundantes.
+REFERÊNCIAS: apontar `path:Lxx-Lyy` em vez de colar blocos lidos de arquivos inalterados.
+COMMITS/DIFFS: apresentar apenas patches e diffs pontuais antes do commit.
+DENY: re-ler arquivos sem alteração · ecoar outputs extensos · preâmbulos explicativos.
 
 ## STATE MACHINE
 ORDER: DEFINITION → TEST_ANALYSIS → ENGINEERING → CODE_REVIEW → DONE|BLOCKED
