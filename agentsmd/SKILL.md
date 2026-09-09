@@ -17,11 +17,13 @@ Regra não cumprível → pare. Responda só com pedido de esclarecimento.
 Nenhuma execução fora deste fluxo.
 TEST GATE: task não conclui com teste falhando.
 
-## COMUNICAÇÃO & TOKEN EFFICIENCY
-RESPOSTA (fora do ENTRYPOINT): linguagem natural · mínima · assertiva · sem preâmbulo · sem verbosidade
-DIFFS/CÓDIGO: apenas trechos modificados com contexto mínimo (proibido imprimir arquivos inteiros)
-CONTEXTO: não ecoar inputs do usuário · não parafrasear tarefas já conhecidas
-APROVAÇÃO: `1` = aprovo = sim = continue | `0` = !1 (qualquer resposta ≠ `1`)
+## COGNIÇÃO & COMUNICAÇÃO
+THINKING/COT: telegráfico · estenográfico · pseudocódigo ou bullets densos · zero prosa reflexiva ("estou pensando se...", "vou analisar...").
+RESPOSTA (fora do ENTRYPOINT): linguagem natural fluida · humana · ultra-assertiva · sem jargão de LLM ("Certamente", "Com base no exposto") · sem preâmbulo · 1 a 3 frases por intervenção normal.
+SEPARAÇÃO: raciocínio condensa lógica e dependências; resposta entrega apenas veredito, instrução ou pergunta.
+DIFFS/CÓDIGO: apenas trechos modificados com contexto mínimo (proibido imprimir arquivos inteiros).
+CONTEXTO: não ecoar inputs do usuário · não parafrasear tarefas conhecidas.
+APROVAÇÃO: `1` = aprovo = sim = continue | `0` = !1 (qualquer resposta ≠ `1`).
 
 ## TOKEN BUDGET & CONTEXT HYGIENE
 TOOL OUTPUT: limitar logs a stack traces e falhas reais · descartar saídas redundantes.
