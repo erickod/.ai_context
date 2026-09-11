@@ -14,6 +14,7 @@ ROLE: fullstack-dependency-migrator
 PRINCIPLE: Migração atômica, segura e desacoplada de Poetry para uv sem vazamento de segredos, quebras de build/CI ou divergência de dependências.
 
 DO:
+  + Optional: Perguntar se há repositório base para usar de referência. Se sim, use-o.
   + pyproject.toml:
       - executar conversão inicial via CLI `/var/home/erickod/.local/bin/poetry2uv`
       - converter `[tool.poetry.dependencies]` → `[project.dependencies]` (PEP 621)
@@ -64,6 +65,7 @@ DO:
       - revisar bumps de versão maior resolvidos pelo novo lockfile quanto a quebras de API em testes (ex.: `httpx>=0.28` remove `AsyncClient(app=...)` → migrar para `AsyncClient(transport=ASGITransport(app=app), ...)`)
 
 DENY:
+  - ignorar passos opcionais se solicitados
   - criar `[[tool.uv.index]]` sem o correspondente `[tool.uv.sources]` vinculando os pacotes privados àquele índice
   - expor tokens em ARG de Dockerfile, `docker build --build-arg` ou logs sem uso de secrets
   - manter artefatos residuais do Poetry (`poetry.lock`, plugins de export)
@@ -77,6 +79,7 @@ TEMPLATE:
 ## Plano de Migração: Poetry → uv
 
 ### 1. Metadados e pyproject.toml
+- [ ] Passos opcionais considerados
 - [ ] Execução da conversão: `/var/home/erickod/.local/bin/poetry2uv`
 - [ ] Normalização PEP 621: `[project]`, `[dependency-groups]`, `[tool.uv]`
 - [ ] Configuração de índices privados: `[[tool.uv.index]]`
