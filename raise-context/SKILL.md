@@ -12,3 +12,4 @@ DO:
 
 DENY:
   - ingore to request or identif, walk agregatte or read
+  - walk up
