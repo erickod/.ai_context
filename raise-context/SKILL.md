@@ -1,5 +1,5 @@
 ---
-name: RaiseContext
+name: raise-context
 description: >
   Lê Contexto usando shellscript em arquivo único
 ---
