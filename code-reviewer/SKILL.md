@@ -10,6 +10,7 @@ GATE.IN:
   ddd?       → ativa DDD | ignora DDD
   n_partite? → ativa N_PARTITE | ignora
   perf_deep? → ativa PERF_DEEP (MEM/CPU/cache × k8s) | ignora
+  refactor_only? → ativa REFACTOR_CHECK+N_PARTITE | ignora
   detectar: lang · framework · padrões · bounded contexts
   escopo: cada commit da branch atual da task — código · msg · testes · log
 
@@ -34,11 +35,14 @@ CRITERIA:
   tests:       cobertura · gaps · sem over-mocking
   format:      sem dead/unused · PEP8 · 79–120 chars
                typehints modernizados p/ versão-alvo, se Python (`~/.agents/skills/python-typehints-upgrade/SKILL.md`)
+  implicit: corretude via default/convenção não-explícita → exigir explicitação ou teste que trave
+  refactor_estrutural: reorganização de fluxo preserva semântica ✗ sem duplicação colateral no entorno
 ¹smells: Long Method/Class · Long Params · Data Clumps · Primitive Obsession
   Switch Stmts · Refused Bequest · Divergent Change · Shotgun Surgery
   Speculative Generality · Duplicate/Dead Code · Temp Field
   Feature Envy · Inappropriate Intimacy · Msg Chains · Middle Man
   Magic Numbers · Ignored Exceptions
+  Opaque Indirection · Order Coupling
 
 N_PARTITE (opcional, flag n_partite?):
   escopo: todo attr/classe/função/módulo/pacote tocado no diff
@@ -69,19 +73,24 @@ PERF_DEEP (opcional, flag perf_deep?):
              → checar se resources.requests/limits do manifest foi revisto/ajustado
              gate qualitativo (✗ estimativa numérica) — se manifest não anexado, sinalizar pendência
 
+REFACTOR_CHECK (opcional, flag refactor_only?):
+  mapear casos ANTES↔DEPOIS até cobertura total · diff → reclassifica p/ CRITERIA completo
+  consolidação (N→1) → exigir teste por caso antigo · DENY: equivalência "por leitura"
+
 MANDATORY: avaliar TODOS os itens de CRITERIA + TODOS os smells¹ · nenhum pode ser omitido
-  N_PARTITE e PERF_DEEP só entram se flag ativa — mas, se ativos, também são MANDATORY (sem subset)
+  N_PARTITE, PERF_DEEP e REFACTOR_CHECK só entram se flag ativa — mas, se ativos, também são MANDATORY (sem subset)
   DENY: pular critério/smell · avaliar só subset · marcar N/A sem justificativa
 
 OUTPUT:
   SUMMARY:  verdict: Aprovado | Aprovado c/ ressalvas | Requer alterações
             positivos · preocupações críticas
   ANALYSIS: CRITERIA violados + smells¹ (checklist item a item)
-            + N_PARTITE (se ativo) + PERF_DEEP (se ativo)
+            + N_PARTITE (se ativo) + PERF_DEEP (se ativo) + REFACTOR_CHECK (se ativo)
   ACTIONS:
     🔴 bloqueia merge  → problema · impacto · fix por commit + exemplo before/after
     🟡 corrigir logo   → problema · justificativa
     🟢 nice-to-have    → sugestão · benefício
+    ⚖️ trade-off        → 2+ soluções válidas: opção A (prós/contras) · opção B (prós/contras) · rec. condicionada
   LOG: por commit → ✓ | ⚠ | ✗
 
 PUBLICAÇÃO (opcional): se pedir p/ publicar review no PR → `~/.agents/skills/publish_codereview/SKILL.md`
@@ -91,4 +100,5 @@ GATE.OUT:
   DoD=ok · 🔴=0 · testes=ok · log=ok → STATE:DONE
   else → STATE:BLOCKED → REQUEST CHANGES: ENG (@[~/.agents/skills/eng])
 DENY: alterar código · aprovar c/ testes falhando · ignorar DoD · merge sem aprovação
-  · mostrar critério/smell não violados · omitir N_PARTITE/PERF_DEEP se flag ativa
+  · mostrar critério/smell não violados · omitir N_PARTITE/PERF_DEEP/REFACTOR_CHECK se flag ativa
+  · reduzir métrica às custas de rastreabilidade sem marcar ⚖️ trade-off
