@@ -14,7 +14,22 @@ GATE.IN:
   detectar: lang · framework · padrões · bounded contexts
   escopo: cada commit da branch atual da task — código · msg · testes · log
 
-CRITERIA:
+EXTRACT (mecânico, pré-CRITERIA — inventário ✗ julgamento):
+  perf:        loops[] × io_calls[] → loop c/ io_call = candidato N+1 (provar batch, ✗ assumir)
+               queries_novas[] × índices[]
+  reliability: writes[] × sistemas_alvo[] (dual write) · operações[] × retry/dedup[] (idempotência)
+  data:        campos_monetários[] × tipo (Decimal/int vs float)
+               mudanças_financeiras[] × audit_trail[] · campos_PII[] × destino(log/response) × anonimização[]
+  contract:    assinaturas_públicas[] × consumidores[] · schema_evento[] × versão_anterior
+  ddd:         classes[] × (métodos-comportamento vs get/set) → anemic? · transações[] × camada
+  layers:      imports[] × direção (domain←infra = violação)
+  smells¹:     métodos×linhas · classes×métodos · funções×params · classes×colaboradores-externos
+               chamadas-encadeadas[] · literais-sem-const[] · except-sem-ação[]
+  security:    inputs_externos[] × validação[] · queries[] × parametrização
+  errors:      chamadas_externas[] × fallback/circuit-breaker[]
+  format:      linhas>120 · imports_não_usados[]
+
+CRITERIA (consome EXTRACT correspondente — ✗ reavaliar de memória o já inventariado):
   design:      SOLID · DI/IoC · coesão/acoplamento · patterns · smells¹
   DDD:        BC · ubiq-lang · ctx-map | aggregates · entity/VO · repo · CQRS · events
                ✗ anemic model · god obj · leaky abstraction · tx script
@@ -81,10 +96,26 @@ MANDATORY: avaliar TODOS os itens de CRITERIA + TODOS os smells¹ · nenhum pode
   N_PARTITE, PERF_DEEP e REFACTOR_CHECK só entram se flag ativa — mas, se ativos, também são MANDATORY (sem subset)
   DENY: pular critério/smell · avaliar só subset · marcar N/A sem justificativa
 
+ANALYSIS.FORMATO (1 linha/item, CRITERIA+smells¹, sem exceção):
+  [ ] item: achado (arquivo:linha) | "não identificado — verificado em: <ref EXTRACT>"
+  "não identificado" sem ref = inválido → reescrever
+  ordem: CRITERIA → smells¹ → N_PARTITE/PERF_DEEP/REFACTOR_CHECK (se ativos, seção própria)
+
+VERIFY (pós-ANALYSIS, pré-OUTPUT):
+  reler diff do zero, ignorando ANALYSIS escrito · buscar o que passou batido, ✗ confirmar
+  foco (falso-negativo recorrente — atualizar por review real que pegar algo omitido):
+    N+1 disfarçado (comprehension · property ORM · helper/serializer)
+    dual write sem outbox/saga
+    float em campo monetário (inclui DTO/schema intermediário)
+    idempotência ausente em handler evento/webhook
+    anemic model disfarçado de service rico
+  achado novo → inserir em ANALYSIS (formato acima), ✗ rodapé solto
+  DENY: pular etapa · marcar VERIFY=ok sem reler
+
 OUTPUT:
   SUMMARY:  verdict: Aprovado | Aprovado c/ ressalvas | Requer alterações
             positivos · preocupações críticas
-  ANALYSIS: CRITERIA violados + smells¹ (checklist item a item)
+  ANALYSIS: CRITERIA violados + smells¹ (conforme ANALYSIS.FORMATO, item a item, incl. os "não identificado")
             + N_PARTITE (se ativo) + PERF_DEEP (se ativo) + REFACTOR_CHECK (se ativo)
   ACTIONS:
     🔴 bloqueia merge  → problema · impacto · fix por commit + exemplo before/after
@@ -97,8 +128,9 @@ PUBLICAÇÃO (opcional): se pedir p/ publicar review no PR → `~/.agents/skills
   (reaproveita SUMMARY/ANALYSIS/ACTIONS já produzidos, nunca re-analisa do zero)
 
 GATE.OUT:
-  DoD=ok · 🔴=0 · testes=ok · log=ok → STATE:DONE
+  DoD=ok · 🔴=0 · testes=ok · log=ok · VERIFY=ok → STATE:DONE
   else → STATE:BLOCKED → REQUEST CHANGES: ENG (@[~/.agents/skills/eng])
 DENY: alterar código · aprovar c/ testes falhando · ignorar DoD · merge sem aprovação
   · mostrar critério/smell não violados · omitir N_PARTITE/PERF_DEEP/REFACTOR_CHECK se flag ativa
   · reduzir métrica às custas de rastreabilidade sem marcar ⚖️ trade-off
+  · pular VERIFY · ANALYSIS.FORMATO opcional
