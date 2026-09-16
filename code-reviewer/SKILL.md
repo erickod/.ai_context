@@ -23,6 +23,14 @@ EXTRACT (mecânico, pré-CRITERIA — inventário ✗ julgamento):
   contract:    assinaturas_públicas[] × consumidores[] · schema_evento[] × versão_anterior
   ddd:         classes[] × (métodos-comportamento vs get/set) → anemic? · transações[] × camada
   layers:      imports[] × direção (domain←infra = violação)
+  migrations:  revisions[] × down_revision[] → grafo de dependência
+               heads[] (migrations sem filho na branch) × qtd → >1 head = revision nova aponta p/ head desatualizado/errado
+               merge_migration_presente? (down_revision como tupla) → ✗ nunca esperado — sempre inválido, mesmo com heads>1
+               down_revision[] × head_atual_da_branch_alvo → corresponde exatamente ao head correto (✗ head antigo · ✗ tupla)
+               tabelas/colunas_tocadas[] por migration × outras migrations no mesmo intervalo/branch → sobreposição
+               operações[] (add/drop/alter/rename column|table|index) × dados_existentes → destrutivo?
+               upgrade()[] × downgrade()[] → downgrade implementado p/ cada operação de upgrade (✗ pass/no-op sem justificativa)
+               data_migration[] (UPDATE/backfill) × schema_migration[] → misturadas na mesma revisão sem necessidade?
   smells¹:     métodos×linhas · classes×métodos · funções×params · classes×colaboradores-externos
                chamadas-encadeadas[] · literais-sem-const[] · except-sem-ação[]
   security:    inputs_externos[] × validação[] · queries[] × parametrização
@@ -41,6 +49,14 @@ CRITERIA (consome EXTRACT correspondente — ✗ reavaliar de memória o já inv
                LGPD (PII em log/response, anonimização, retenção)
   contract:    breaking change de API (versionamento, consumidores externos)
                schema evolution de evento (compat consumidor, ordering, DLQ)
+  migrations:  merge migration presente → 🔴 bloqueia SEMPRE, mesmo resolvendo heads>1 tecnicamente
+               (fix exigido: rebase/renumerar down_revision da revision nova p/ apontar direto ao head correto e único da branch — ✗ merge migration como solução)
+               down_revision desatualizado (branch tem head mais novo que o referenciado) → 🔴 bloqueia · corrigir apontando p/ head correto
+               conflito semântico: 2+ migrations alterando mesma tabela/coluna em paralelo — mesmo com down_revision correto — exigir squash/reordenação antes do merge
+               destrutivo sem guarda: drop column/table/index sem janela de deprecação ou backup, especialmente se coluna ainda referenciada em código/queries
+               downgrade coerente (✗ pass/no-op quando upgrade não é trivialmente reversível — se irreversível, exigir comentário documentando por quê)
+               idempotência: rerun seguro (checagem de existência antes de create/drop, ✗ erro se já aplicada parcialmente)
+               data migration separada de schema migration quando ambas presentes, salvo dependência direta
   perf:        O(n²) · N+1 · cache · lazy · bulk db index impact (query nova sem índice · índice novo pesando em write-heavy table)
                · fanout (join explosion · IO explosion · mensageria sem backpressure ou batch)
   security:    OWASP · authz · input validation · dados sensíveis · CSRF
@@ -109,6 +125,7 @@ VERIFY (pós-ANALYSIS, pré-OUTPUT):
     float em campo monetário (inclui DTO/schema intermediário)
     idempotência ausente em handler evento/webhook
     anemic model disfarçado de service rico
+    merge migration não sinalizada / down_revision apontando p/ head errado ou desatualizado
   achado novo → inserir em ANALYSIS (formato acima), ✗ rodapé solto
   DENY: pular etapa · marcar VERIFY=ok sem reler
 
@@ -134,3 +151,4 @@ DENY: alterar código · aprovar c/ testes falhando · ignorar DoD · merge sem 
   · mostrar critério/smell não violados · omitir N_PARTITE/PERF_DEEP/REFACTOR_CHECK se flag ativa
   · reduzir métrica às custas de rastreabilidade sem marcar ⚖️ trade-off
   · pular VERIFY · ANALYSIS.FORMATO opcional
+  · aceitar merge migration como fix p/ heads>1 — exigir sempre correção de down_revision
