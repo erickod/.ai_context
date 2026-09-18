@@ -21,6 +21,9 @@ EXTRACT (mecânico, pré-CRITERIA — inventário ✗ julgamento):
   data:        campos_monetários[] × tipo (Decimal/int vs float)
                mudanças_financeiras[] × audit_trail[] · campos_PII[] × destino(log/response) × anonimização[]
   contract:    assinaturas_públicas[] × consumidores[] · schema_evento[] × versão_anterior
+  env_k8s:     settings.<VAR>[] / config("VAR", ...)[] tocados ou novos no diff × workload[] que importa o módulo
+               (transitivamente — settings.py é importado por api, workers, cronjobs)
+               × configMap[]/secrets[] de CADA workload em CADA manifest de ambiente (dev/sandbox/prod)
   ddd:         classes[] × (métodos-comportamento vs get/set) → anemic? · transações[] × camada
   layers:      imports[] × direção (domain←infra = violação)
   migrations:  revisions[] × down_revision[] → grafo de dependência
@@ -49,6 +52,20 @@ CRITERIA (consome EXTRACT correspondente — ✗ reavaliar de memória o já inv
                LGPD (PII em log/response, anonimização, retenção)
   contract:    breaking change de API (versionamento, consumidores externos)
                schema evolution de evento (compat consumidor, ordering, DLQ)
+  env_k8s:     var lida via settings.py referenciada por caminho de código de um workload (worker/cronjob) →
+               presente no configMap/secrets desse MESMO workload, não só em "apis" — 🔴 bloqueia se ausente
+               (padrão de falha: var só existe no configMap de "apis"; worker/cronjob que importa o mesmo
+               settings.py silenciosamente recebe o default — nenhum erro de import, só comportamento errado em runtime)
+               default de settings.py mascarando ausência (`config("X", default="")`/`None`/valor "neutro") sem
+               fail-fast → exigir validação explícita (startup check ou exceção clara) se a var é obrigatória p/ o fluxo
+               nova var: presente em TODOS os ambientes (dev/sandbox/prod) p/ TODOS os workloads que a usam, ✗ só no
+               ambiente onde o autor testou
+               inverso: settings.<VAR>[] novo/tocado no diff × NENHUM configMap/secrets de NENHUM manifest a define
+               (nem "apis" nem workers/cronjobs) → 🔴 bloqueia por default — var só roda com o default do `config()`,
+               nunca com o valor pretendido, e ninguém percebe
+               EXCEÇÃO: não bloqueia SE houver aprovação manual explícita e registrada (comentário no PR/commit
+               justificando: var só de uso local/teste, feature-flagged ainda não ativada, rollout futuro planejado etc.)
+               — ausência de aprovação = default DENY, ✗ assumir intencional por omissão
   migrations:  merge migration presente → 🔴 bloqueia SEMPRE, mesmo resolvendo heads>1 tecnicamente
                (fix exigido: rebase/renumerar down_revision da revision nova p/ apontar direto ao head correto e único da branch — ✗ merge migration como solução)
                down_revision desatualizado (branch tem head mais novo que o referenciado) → 🔴 bloqueia · corrigir apontando p/ head correto
@@ -126,6 +143,8 @@ VERIFY (pós-ANALYSIS, pré-OUTPUT):
     idempotência ausente em handler evento/webhook
     anemic model disfarçado de service rico
     merge migration não sinalizada / down_revision apontando p/ head errado ou desatualizado
+    settings.<VAR> nova/alterada presente no configMap de "apis" mas ausente no de worker/cronjob que
+    também importa o módulo (mesmo padrão do incidente GUARANTEED_SALE_PARTNER_NATIONAL_ID)
   achado novo → inserir em ANALYSIS (formato acima), ✗ rodapé solto
   DENY: pular etapa · marcar VERIFY=ok sem reler
 
@@ -152,3 +171,5 @@ DENY: alterar código · aprovar c/ testes falhando · ignorar DoD · merge sem 
   · reduzir métrica às custas de rastreabilidade sem marcar ⚖️ trade-off
   · pular VERIFY · ANALYSIS.FORMATO opcional
   · aceitar merge migration como fix p/ heads>1 — exigir sempre correção de down_revision
+  · liberar var settings.<VAR> ausente em manifest k8s (em qualquer direção) sem aprovação manual explícita
+    registrada — omissão silenciosa ✗ conta como aprovado
